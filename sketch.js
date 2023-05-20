@@ -1,6 +1,4 @@
-const BKG_COLOR = 55;
-
-const BOARD_DIM = 5;
+const CELL_COUNT = 5;
 const CANVAS_DIM = 800;
 
 const CELL_STATES = {
@@ -9,75 +7,37 @@ const CELL_STATES = {
     "ACTIVE": 2
 };
 
-let COLORS;
-
-let boardWidth, boardHeight, cellHeight, cellWidth, startX, startY;
+let _colors_;
 
 let cells;
 
 function setup() {
     createCanvas(CANVAS_DIM, CANVAS_DIM);
 
-    COLORS = {
-        "blue": color(0, 128, 150),
-        "yellow": color(150, 128, 0),
-        "grey": color(55),
-        "green": color(128, 150, 0),
-        "purple": color(150, 0, 128),
-        "white": color(200),
-        "black": color(25)
-    }
-
-    boardWidth = (width * 0.8);
-    boardHeight = (height * 0.8);
+    _colors_ = createColors();
     
-    startX = width/2-boardWidth/2;
-    startY = height/2-boardHeight/2;
-    
-    cellHeight = boardHeight / BOARD_DIM;
-    cellWidth =  boardWidth/ BOARD_DIM;
+    let boardDim = (CANVAS_DIM * 0.95);
+    let cellDim = boardDim / CELL_COUNT;
+    let start = CANVAS_DIM/2-boardDim/2;
 
     cells = [];
-    for (let dy = 0; dy < BOARD_DIM; dy++) {
-        for (let dx = 0; dx < BOARD_DIM; dx++) {
-            let x = dx*cellWidth + startX;
-            let y = dy*cellHeight + startY;
-            cells.push(new Cell(x, y));
+    for (let dy = 0; dy < CELL_COUNT; dy++) {
+        for (let dx = 0; dx < CELL_COUNT; dx++) {
+            let x = dx*cellDim + start;
+            let y = dy*cellDim + start;
+            cells.push(new Cell(x, y, cellDim));
         }
     }
 }
 
 function draw() {
-    background(COLORS.grey);
+    background(_colors_.white);
 
     push();
     for (let cell of cells) {
         cell.draw();
     }
     pop();
-
-    push();
-    stroke(COLORS.white);
-    for (let d = 1; d <= BOARD_DIM; d++) {
-        let y = d*cellHeight + startY;
-        let x = d*cellWidth + startX;
-        line(startX, y, boardWidth + startX, y);
-        line(x, startY, x, boardHeight + startY);
-    }
-    pop();
-
-    push();
-    stroke(COLORS.white);
-    noFill();
-    strokeWeight(3);
-    rect(startX, startY, boardWidth, boardHeight);
-    pop();
-
-    // push();
-    // stroke(0,255,0);
-    // line(width/2, 0, width/2, height);
-    // line(0, height/2, width, height/2);
-    // pop();
 }
 
 function mouseMoved() {
@@ -117,7 +77,7 @@ function mouseClicked() {
         if (cell.state === CELL_STATES.HOVERED) {
             cell.state = CELL_STATES.ACTIVE;
         } else {
-            if (cell.state === CELL_STATES.ACTIVE) {
+            if (cell.state === CELL_STATES.ACTIVE && cell.mouseOver(m.x, m.y)) {
                 cell.state = CELL_STATES.HOVERED
             } else {
                 cell.state = CELL_STATES.DEFAULT;
@@ -135,34 +95,44 @@ function getMouseCoords() {
     return m;
 }
 
+class Rect {
+    constructor(x, y, xDim, yDim) {
+        this.width = xDim;
+        this.height = yDim;
+        this.top = y;
+        this.right = x + xDim;
+        this.bottom = y + yDim;
+        this.left = x;
+        this.topLeft = createVector(x, y);
+        this.topRight = createVector(x + xDim, y);
+        this.bottomLeft = createVector(x, y + yDim);
+        this.bottomRight = createVector(x + xDim, y + yDim);
+        this.center = createVector(x + x/2, y + y/2);
+    }
+}
+
 class Cell {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.rect = {
-            t: this.y,
-            r: x + cellWidth,
-            b: y + cellHeight,
-            l: this.x
-        }
+    constructor(x, y, dim) {
+        this.rect = new Rect(x, y, dim, dim);
         this.colors = {
-            0: COLORS.grey,
-            1: COLORS.yellow,
-            2: COLORS.blue
+            0: _colors_.grey,   // DEFAULT
+            1: _colors_.yellow, // HOVERED
+            2: _colors_.blue    // ACTIVE
         };
         this.state = CELL_STATES.DEFAULT;
     }
 
     mouseOver(mx, my) {
-        return (this.rect.l < mx && this.rect.r > mx) &&
-               (this.rect.t < my && this.rect.b > my);
+        return (this.rect.left < mx && this.rect.right > mx) &&
+               (this.rect.top < my && this.rect.bottom > my);
     }
 
     draw() {
         push();
         noStroke();
+        stroke(_colors_.white)
         fill(this.colors[this.state]);
-        rect(this.x, this.y, cellWidth, cellHeight);
+        rect(this.rect.left, this.rect.top, this.rect.width, this.rect.height);
         pop();
     }
 }
