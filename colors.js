@@ -9,9 +9,8 @@ let colors = {
 }
 
 function createColors() {
-    let _colors = {}
     for (let theColor of Object.keys(colors)) {
-        _colors[theColor] = color(colors[theColor])
+        colors[theColor] = color(colors[theColor])
     }
-    return _colors;
+    return colors;
 }

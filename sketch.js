@@ -1,38 +1,10 @@
-const CELL_COUNT = 5;
-const CANVAS_DIM = 800;
-
-const CELL_TYPES = {
-    "REGULAR": 0,
-    "BLOCKED": 1
-}
-
-const CELL_STATES = {
-    "DEFAULT": 0,
-    "HOVERED": 1,
-    "ACTIVE": 2
-};
-
 let _colors_;
 
-let cells;
-
 function setup() {
-    createCanvas(CANVAS_DIM, CANVAS_DIM);
+    let canvas = createCanvas(CANVAS_DIM, CANVAS_DIM);
+    canvas.parent("canvas-container");
 
     _colors_ = createColors();
-    
-    let boardDim = (CANVAS_DIM * 0.95);
-    let cellDim = boardDim / CELL_COUNT;
-    let start = CANVAS_DIM/2-boardDim/2;
-
-    cells = [];
-    for (let dy = 0; dy < CELL_COUNT; dy++) {
-        for (let dx = 0; dx < CELL_COUNT; dx++) {
-            let x = dx*cellDim + start;
-            let y = dy*cellDim + start;
-            cells.push(new Cell(x, y, cellDim));
-        }
-    }
 }
 
 function draw() {
@@ -70,6 +42,7 @@ function mouseClicked() {
         
         if (cell.state === CELL_STATES.HOVERED) {
             cell.state = CELL_STATES.ACTIVE;
+            console.log(cell);
         } else {
             if (cell.state === CELL_STATES.ACTIVE && cell.mouseOver(m.x, m.y)) {
                 cell.state = CELL_STATES.HOVERED
@@ -174,70 +147,4 @@ function getMouseCoords() {
         m.y < 0 || m.y > height)
         m = createVector(-1, -1);
     return m;
-}
-
-class Rect {
-    constructor(x, y, xDim, yDim) {
-        this.width = xDim;
-        this.height = yDim;
-        this.top = y;
-        this.right = x + xDim;
-        this.bottom = y + yDim;
-        this.left = x;
-        this.topLeft = createVector(x, y);
-        this.topRight = createVector(x + xDim, y);
-        this.bottomLeft = createVector(x, y + yDim);
-        this.bottomRight = createVector(x + xDim, y + yDim);
-        this.center = createVector(x + xDim/2, y + yDim/2);
-    }
-}
-
-class Cell {
-    constructor(x, y, dim) {
-        this.rect = new Rect(x, y, dim, dim);
-        this.colors = {
-            0: _colors_.grey,   // DEFAULT
-            1: _colors_.yellow, // HOVERED
-            2: _colors_.blue,   // ACTIVE
-        };
-        this.type = CELL_TYPES.REGULAR;
-        this.state = CELL_STATES.DEFAULT;
-        this.number = undefined;
-        this.letter = undefined;
-        this.numberTextSize = 24;
-        this.letterTextSize = 110;
-    }
-
-    mouseOver(mx, my) {
-        return (this.rect.left < mx && this.rect.right > mx) &&
-               (this.rect.top < my && this.rect.bottom > my);
-    }
-
-    draw() {
-        push();
-        noStroke();
-        stroke(_colors_.white)
-        fill(this.type === CELL_TYPES.REGULAR ? this.colors[this.state] : _colors_.black);
-        rect(this.rect.left, this.rect.top, this.rect.width, this.rect.height);
-        if (this.type === CELL_TYPES.BLOCKED && this.state !== CELL_STATES.DEFAULT) {
-            noFill();
-            stroke(this.colors[this.state]);
-            strokeWeight(3);
-            let pad = 2;
-            rect(this.rect.left+pad, this.rect.top+pad, this.rect.width-pad*2, this.rect.height-pad*2);
-        }
-        if (this.letter) {
-            fill(_colors_.white);
-            textSize(this.letterTextSize);
-            let tw = textWidth(this.letter);
-            text(this.letter, this.rect.center.x - tw/2, this.rect.bottom - this.letterTextSize/6);
-        }
-        if (this.number) {
-            fill(_colors_.white);
-            textSize(this.numberTextSize);
-            let tw = textWidth(this.number);
-            text(this.number, this.rect.left + tw/2, this.rect.top + this.numberTextSize);
-        }
-        pop();
-    }
 }
