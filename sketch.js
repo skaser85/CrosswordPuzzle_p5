@@ -10,18 +10,22 @@ function setup() {
 function draw() {
     background(_colors_.white);
 
-    push();
-    for (let cell of cells) {
-        cell.draw();
+    if (puzzle) {
+        push();
+        for (let cell of puzzle.cells) {
+            cell.draw();
+        }
+        pop();
     }
-    pop();
 }
 
 function mouseMoved() {
+    if (!puzzle)
+        return false;
     let m = getMouseCoords();
     if (m.x < 0)
         return false;
-    for (let cell of cells) {
+    for (let cell of puzzle.cells) {
         if (cell.state === CELL_STATES.ACTIVE || cell.state === CELL_STATES.BLOCKED)
             continue;
         if (cell.mouseOver(m.x, m.y)) {
@@ -35,10 +39,12 @@ function mouseMoved() {
 }
 
 function mouseClicked() {
+    if (!puzzle)
+        return false;
     let m = getMouseCoords();
     if (m.x < 0)
         return false;
-    for (let cell of cells) {
+    for (let cell of puzzle.cells) {
         
         if (cell.state === CELL_STATES.HOVERED) {
             cell.state = CELL_STATES.ACTIVE;
@@ -55,25 +61,27 @@ function mouseClicked() {
 }
 
 function keyReleased() {
+    if (!puzzle)
+        return false;
     let moveMade = false;
-    for (let i = 0; i < cells.length; i++) {
-        let cell = cells[i];
+    for (let i = 0; i < puzzle.cells.length; i++) {
+        let cell = puzzle.cells[i];
         if (cell.state === CELL_STATES.ACTIVE) {
             switch (key) {
                 case "ArrowUp": {
                     let index = i - CELL_COUNT;
                     if (index < 0)
-                        index += cells.length
-                    cells[index].state = CELL_STATES.ACTIVE;
+                        index += puzzle.cells.length
+                    puzzle.cells[index].state = CELL_STATES.ACTIVE;
                     cell.state = CELL_STATES.DEFAULT;
                     moveMade = true;
                     break;
                 }
                 case "ArrowDown": {
                     let index = i + CELL_COUNT;
-                    if (index >= cells.length)
-                        index -= cells.length;
-                    cells[index].state = CELL_STATES.ACTIVE;
+                    if (index >= puzzle.cells.length)
+                        index -= puzzle.cells.length;
+                    puzzle.cells[index].state = CELL_STATES.ACTIVE;
                     cell.state = CELL_STATES.DEFAULT;
                     moveMade = true;
                     break;
@@ -82,7 +90,7 @@ function keyReleased() {
                     let index = i - 1;
                     if (i % CELL_COUNT === 0)
                         index = i + CELL_COUNT - 1;
-                    cells[index].state = CELL_STATES.ACTIVE;
+                    puzzle.cells[index].state = CELL_STATES.ACTIVE;
                     cell.state = CELL_STATES.DEFAULT;
                     moveMade = true;
                     break;
@@ -91,7 +99,7 @@ function keyReleased() {
                     let index = i + 1;
                     if (i % CELL_COUNT === CELL_COUNT - 1)
                         index = i - (CELL_COUNT - 1);
-                    cells[index].state = CELL_STATES.ACTIVE;
+                    puzzle.cells[index].state = CELL_STATES.ACTIVE;
                     cell.state = CELL_STATES.DEFAULT;
                     moveMade = true;
                     break;
